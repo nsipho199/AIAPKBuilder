@@ -29,10 +29,10 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - name: Set up Android SDK (compileSdk 35)
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 35
-          build-tools: 35.0.0
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" || \
+          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" || \
+          echo "Using pre-installed SDK"
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
