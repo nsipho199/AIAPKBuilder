@@ -78,15 +78,11 @@ jobs:
             "okta"
             "cognito"
             "keycloak"
-            "login"
-            "signin"
-            "signup"
-            "register"
           )
           
           FOUND=0
           for auth in "${BANNED_AUTH[@]}"; do
-            if grep -ri "$auth" --include="*.gradle*" app/build.gradle*; then
+            if grep -ri "$auth" --include="*.gradle*" --include="*.kts" --include="*.toml" gradle/ app/build.gradle.kts; then
               echo "❌ BLOCKED: Found banned auth library: $auth"
               FOUND=1
             fi
