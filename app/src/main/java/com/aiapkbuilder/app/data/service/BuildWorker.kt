@@ -1,35 +1,31 @@
 package com.aiapkbuilder.app.data.service
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import com.aiapkbuilder.app.data.model.BuildJob
 import com.aiapkbuilder.app.data.model.BuildStatus
 import com.aiapkbuilder.app.data.repository.ProjectRepository
 import com.aiapkbuilder.app.data.service.build.BuildExecutor
 import com.google.gson.Gson
-import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * WorkManager worker for handling background build operations
  */
-class BuildWorker(
-    context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
-
-    @Inject
-    lateinit var projectRepository: ProjectRepository
-
-    @Inject
-    lateinit var buildExecutor: BuildExecutor
-
-    @Inject
-    lateinit var gson: Gson
+@HiltWorker
+class BuildWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val projectRepository: ProjectRepository,
+    private val buildExecutor: BuildExecutor,
+    private val gson: Gson
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         return@withContext try {
