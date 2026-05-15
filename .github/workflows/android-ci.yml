@@ -1,0 +1,110 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ['17', '11']
+
+    env:
+      GRADLE_USER_HOME: /home/runner/.gradle
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+
+      - name: Set up Android SDK (compileSdk 35)
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 35
+          build-tools: 35.0.0
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-build-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties', '**/build.gradle*', '**/settings.gradle*', '**/settings.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-build-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Prepare signing (optional)
+        if: secrets.KEYSTORE_BASE64 != ''
+        run: |
+          echo "Decoding keystore from KEYSTORE_BASE64..."
+          echo "$KEYSTORE_BASE64" | base64 --decode > ./keystore.jks
+          ls -l ./keystore.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Run lint
+        run: ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' clean lint
+
+      - name: Run unit tests
+        run: ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' test
+
+      - name: Generate code coverage report
+        run: ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' testDebugUnitTestCoverage || true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./app/build/reports/coverage/**/*.xml
+          flags: unittests
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Assemble Debug APK
+        run: ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' assembleDebug
+
+      - name: Bundle Release (unsigned by default)
+        run: |
+          if [ -f ./keystore.jks ]; then
+            ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' \
+              -Pandroid.injected.signing.store.file=./keystore.jks \
+              -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+              -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+              -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} \
+              bundleRelease
+          else
+            ./gradlew --no-daemon -Porg.gradle.jvmargs='-Xmx3g' bundleRelease
+          fi
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: app/build/outputs/**/*.apk
+
+      - name: Upload AABs
+        uses: actions/upload-artifact@v4
+        with:
+          name: aabs
+          path: app/build/outputs/**/*.aab
+
+      - name: Stop Gradle Daemon
+        run: ./gradlew --no-daemon --stop || true

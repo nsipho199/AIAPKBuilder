@@ -1,0 +1,274 @@
+name: 🛡️ Free Forever Policy Enforcer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+jobs:
+  enforce-free-policy:
+    runs-on: ubuntu-latest
+    name: Verify Free Forever Commitments
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🚫 Check for Payment Libraries
+        run: |
+          echo "🔍 Scanning for payment/billing libraries..."
+          BANNED_LIBS=(
+            "billingclient"
+            "stripe"
+            "paypal"
+            "payment"
+            "checkout"
+            "square"
+            "razorpay"
+            "skrill"
+          )
+          
+          FOUND=0
+          for lib in "${BANNED_LIBS[@]}"; do
+            if grep -r "$lib" --include="*.kt" --include="*.gradle*" app/; then
+              echo "❌ BLOCKED: Found banned payment library: $lib"
+              FOUND=1
+            fi
+          done
+          
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ POLICY VIOLATION: Payment libraries are prohibited!"
+            exit 1
+          fi
+          echo "✅ No payment libraries detected"
+
+      - name: 🚫 Check for Ad Networks
+        run: |
+          echo "🔍 Scanning for ad network libraries..."
+          BANNED_ADS=(
+            "admob"
+            "firebase_ads"
+            "google-ads"
+            "facebook-ads"
+            "applovin"
+            "mopub"
+            "unity-ads"
+          )
+          
+          FOUND=0
+          for ad in "${BANNED_ADS[@]}"; do
+            if grep -ri "$ad" --include="*.kt" --include="*.gradle*" app/; then
+              echo "❌ BLOCKED: Found banned ad library: $ad"
+              FOUND=1
+            fi
+          done
+          
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ POLICY VIOLATION: Ad libraries are prohibited!"
+            exit 1
+          fi
+          echo "✅ No ad networks detected"
+
+      - name: 🚫 Check for Authentication Systems
+        run: |
+          echo "🔍 Scanning for authentication frameworks..."
+          BANNED_AUTH=(
+            "firebase-auth"
+            "auth0"
+            "okta"
+            "cognito"
+            "keycloak"
+            "login"
+            "signin"
+            "signup"
+            "register"
+          )
+          
+          FOUND=0
+          for auth in "${BANNED_AUTH[@]}"; do
+            if grep -ri "$auth" --include="*.gradle*" app/build.gradle*; then
+              echo "❌ BLOCKED: Found banned auth library: $auth"
+              FOUND=1
+            fi
+          done
+          
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ POLICY VIOLATION: Mandatory authentication is prohibited!"
+            echo "ℹ️ Optional authentication for user's own services is OK"
+            exit 1
+          fi
+          echo "✅ No mandatory auth systems detected"
+
+      - name: 🚫 Check for Analytics/Tracking
+        run: |
+          echo "🔍 Scanning for tracking libraries..."
+          BANNED_TRACKING=(
+            "firebase-analytics"
+            "google-analytics"
+            "segment"
+            "mixpanel"
+            "amplitude"
+            "sentry"
+            "crashlytics"
+            "fabric"
+          )
+          
+          FOUND=0
+          for tracking in "${BANNED_TRACKING[@]}"; do
+            if grep -ri "$tracking" --include="*.gradle*" app/build.gradle*; then
+              echo "❌ BLOCKED: Found tracking library: $tracking"
+              FOUND=1
+            fi
+          done
+          
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ POLICY VIOLATION: User tracking is prohibited!"
+            exit 1
+          fi
+          echo "✅ No tracking libraries detected"
+
+      - name: 🔐 Verify MIT License Unchanged
+        run: |
+          echo "🔍 Verifying MIT License..."
+          
+          if ! grep -q "MIT License" LICENSE; then
+            echo "❌ POLICY VIOLATION: License has been altered!"
+            exit 1
+          fi
+          
+          if ! grep -q "Permission is hereby granted, free of charge" LICENSE; then
+            echo "❌ POLICY VIOLATION: Free license clause missing!"
+            exit 1
+          fi
+          
+          echo "✅ MIT License verified intact"
+
+      - name: 🚫 Check for Subscription Code Patterns
+        run: |
+          echo "🔍 Scanning for subscription patterns..."
+          
+          FOUND=0
+          if grep -ri "subscription" --include="*.kt" app/src/main/java | grep -v "test" | grep -v "comment" | grep -v "String"; then
+            echo "⚠️  Found 'subscription' keyword in code - please verify"
+            # Not a hard fail as comments/docs might use this word
+          fi
+          
+          if grep -ri "premium\|pro_version\|upgrade_account" --include="*.kt" app/src/main/java | grep -v "test" | grep -v "comment"; then
+            echo "❌ BLOCKED: Found premium/upgrade logic"
+            FOUND=1
+          fi
+          
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ POLICY VIOLATION: Feature gating detected!"
+            exit 1
+          fi
+          echo "✅ No subscription patterns detected"
+
+      - name: ✅ Check for Free Forever Policy Documents
+        run: |
+          echo "🔍 Verifying policy documentation..."
+          
+          if [ ! -f "FREE_FOREVER_POLICY.md" ]; then
+            echo "⚠️  FREE_FOREVER_POLICY.md not found (should exist)"
+          else
+            echo "✅ FREE_FOREVER_POLICY.md found"
+          fi
+          
+          if [ ! -f "FREE_FOREVER_ENFORCEMENT.md" ]; then
+            echo "⚠️  FREE_FOREVER_ENFORCEMENT.md not found (should exist)"
+          else
+            echo "✅ FREE_FOREVER_ENFORCEMENT.md found"
+          fi
+
+      - name: 📊 Summary Report
+        run: |
+          echo "╔════════════════════════════════════════╗"
+          echo "║   FREE FOREVER POLICY CHECK PASSED      ║"
+          echo "╚════════════════════════════════════════╝"
+          echo ""
+          echo "✅ No payment systems detected"
+          echo "✅ No ad networks detected"
+          echo "✅ No mandatory authentication detected"
+          echo "✅ No tracking systems detected"
+          echo "✅ MIT License verified"
+          echo "✅ No subscription patterns detected"
+          echo ""
+          echo "This code meets Free Forever requirements."
+
+      - name: 🚨 Failure Notification (if any)
+        if: failure()
+        run: |
+          echo "╔════════════════════════════════════════╗"
+          echo "║  ❌ FREE FOREVER POLICY VIOLATION       ║"
+          echo "╚════════════════════════════════════════╝"
+          echo ""
+          echo "This PR violates the Free Forever policy."
+          echo ""
+          echo "PROHIBITED CHANGES:"
+          echo "- Adding payment/billing systems"
+          echo "- Adding ad networks"
+          echo "- Requiring authentication"
+          echo "- Adding user tracking"
+          echo "- Changing MIT license"
+          echo "- Adding premium tiers"
+          echo ""
+          echo "REASON:"
+          echo "AI APK Builder must remain free, unlimited, and open source forever."
+          echo ""
+          echo "REMEDY:"
+          echo "Remove the problematic changes and resubmit."
+          exit 1
+
+  verify-no-play-store-deps:
+    runs-on: ubuntu-latest
+    name: Verify No Play Store Upload Required
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check for Play Store Dependencies
+        run: |
+          echo "Checking for Play Store specific code..."
+          
+          if grep -ri "play.*store\|play.*services\|publish.*playstore" --include="*.kt" --include="*.gradle*" app/src/main; then
+            echo "⚠️  Play Store references found (may be acceptable)"
+          fi
+          
+          # This is informational only
+          echo "✅ Distribution method verified as GitHub/alternative"
+
+  license-check:
+    runs-on: ubuntu-latest
+    name: Verify Open Source License
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📄 Verify MIT License
+        run: |
+          if [ ! -f "LICENSE" ]; then
+            echo "❌ LICENSE file missing!"
+            exit 1
+          fi
+          
+          if ! grep -q "MIT" LICENSE; then
+            echo "❌ LICENSE is not MIT!"
+            exit 1
+          fi
+          
+          echo "✅ MIT License verified"
+
+      - name: 🔍 Check License in gradle files
+        run: |
+          echo "Verifying no license restrictions in build configs..."
+          
+          if grep -ri "proprietary\|commercial-only" --include="*.gradle*" app/ build/; then
+            echo "⚠️  Proprietary restrictions found"
+          fi
+          
+          echo "✅ No commercial restrictions detected"

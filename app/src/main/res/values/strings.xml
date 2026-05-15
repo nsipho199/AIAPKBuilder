@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI APK Builder</string>
+    <string name="generate">Generate App</string>
+    <string name="projects">My Projects</string>
+    <string name="settings">Settings</string>
+    <string name="templates">Templates</string>
+    <string name="build_status_pending">Pending</string>
+    <string name="build_status_generating">Generating Code</string>
+    <string name="build_status_building">Building APK</string>
+    <string name="build_status_success">Ready</string>
+    <string name="build_status_failed">Failed</string>
+    <string name="download_apk">Download APK</string>
+    <string name="download_source">Download Source ZIP</string>
+    <string name="retry_build">Retry Build</string>
+    <string name="view_logs">View Build Logs</string>
+    <string name="file_provider_authority">com.aiapkbuilder.app.fileprovider</string>
+</resources>
