@@ -118,63 +118,26 @@ jacoco {
     version = "0.8.11"
 }
 
-tasks.register("testDebugUnitTestCoverage") {
+tasks.register<JacocoReport>("testDebugUnitTestCoverage") {
+    dependsOn("testDebugUnitTest")
     group = "verification"
     description = "Generates code coverage report for debug unit tests"
-    dependsOn("testDebugUnitTest")
 
-    doLast {
-        val projectName = project.name
-        val coverageSourceDirs = listOf(
-            "src/main/java",
-            "src/main/kotlin"
-        )
-        val classFilesTree = fileTree(
-            mapOf(
-                "dir" to "${layout.buildDirectory.asFile.get()}/intermediates/classes/debug",
-                "excludes" to listOf(
-                    "**/R.class",
-                    "**/R\$*.class",
-                    "**/*Test*.class",
-                    "**/*\$ViewInjector*.*",
-                    "**/*\$\$*.*"
-                )
-            )
-        )
-
-        jacoco.applyTo(classFilesTree)
-
-        val executionDataFileTree = fileTree(
-            mapOf(
-                "dir" to layout.buildDirectory.asFile.get(),
-                "includes" to listOf("jacoco/testDebugUnitTest.exec")
-            )
-        )
-
-        val report = reports.create("testDebugUnitTestCoverage") {
-            onlyIf { true }
-            reports {
-                xml.required.set(true)
-                html.required.set(true)
-            }
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(
+        fileTree("${layout.buildDirectory.asFile.get()}/intermediates/classes/debug") {
+            exclude("**/R.class", "**/R\$*.class", "**/*Test*.class", "**/*\$ViewInjector*.*", "**/*\$\$*.*")
         }
-
-        val finalizedBy = tasks.create("testDebugUnitTestCoverageReport", JacocoReport::class) {
-            dependsOn("testDebugUnitTest")
-            group = "verification"
-            description = "Generate JaCoCo coverage report"
-
-            sourceDirectories.setFrom(files(coverageSourceDirs))
-            classDirectories.setFrom(classFilesTree)
-            executionData.setFrom(executionDataFileTree)
-
-            reports {
-                xml.required.set(true)
-                html.required.set(true)
-                csv.required.set(false)
-            }
+    )
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.asFile.get()) {
+            include("jacoco/testDebugUnitTest.exec")
         }
+    )
 
-        dependsOn(finalizedBy)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
     }
 }
