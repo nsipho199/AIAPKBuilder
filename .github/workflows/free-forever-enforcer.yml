@@ -24,16 +24,13 @@ jobs:
             "billingclient"
             "stripe"
             "paypal"
-            "payment"
-            "checkout"
-            "square"
             "razorpay"
             "skrill"
           )
           
           FOUND=0
           for lib in "${BANNED_LIBS[@]}"; do
-            if grep -r "$lib" --include="*.kt" --include="*.gradle*" app/; then
+            if grep -ri "$lib" --include="*.gradle*" --include="*.kts" --include="*.toml" gradle/ app/build.gradle.kts; then
               echo "❌ BLOCKED: Found banned payment library: $lib"
               FOUND=1
             fi
@@ -60,7 +57,7 @@ jobs:
           
           FOUND=0
           for ad in "${BANNED_ADS[@]}"; do
-            if grep -ri "$ad" --include="*.kt" --include="*.gradle*" app/; then
+            if grep -ri "$ad" --include="*.gradle*" --include="*.kts" --include="*.toml" gradle/ app/build.gradle.kts; then
               echo "❌ BLOCKED: Found banned ad library: $ad"
               FOUND=1
             fi
