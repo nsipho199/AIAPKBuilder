@@ -163,6 +163,7 @@ enum class AIProvider(val displayName: String) {
 
 // ─── Template & Code Generation ────────────────────────────────
 @Entity(tableName = "templates")
+@TypeConverters(StringListConverter::class)
 data class ProjectTemplate(
     @PrimaryKey val id: String,
     val name: String,
@@ -243,4 +244,12 @@ class MapConverters {
         val type = object : TypeToken<Map<String, String>>() {}.type
         return gson.fromJson(value, type) ?: emptyMap()
     }
+
+    @TypeConverter
+    fun fromGeneratedProjectPlan(value: GeneratedProjectPlan?): String? =
+        value?.let { gson.toJson(it) }
+
+    @TypeConverter
+    fun toGeneratedProjectPlan(value: String?): GeneratedProjectPlan? =
+        value?.let { gson.fromJson(it, GeneratedProjectPlan::class.java) }
 }
