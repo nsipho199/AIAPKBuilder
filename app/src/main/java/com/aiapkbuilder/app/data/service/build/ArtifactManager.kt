@@ -5,6 +5,7 @@ import com.aiapkbuilder.app.data.model.BuildJob
 import com.aiapkbuilder.app.data.repository.ProjectRepository
 import com.aiapkbuilder.app.util.AppLogger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,8 +23,6 @@ class ArtifactManager @Inject constructor(
     private val artifactCache: ArtifactCache
 ) {
 
-    private val logger = AppLogger.getLogger("ArtifactManager")
-
     /**
      * Registers a new artifact from a build.
      * @param buildJob The completed build job
@@ -33,7 +32,7 @@ class ArtifactManager @Inject constructor(
         try {
             val file = File(artifactPath)
             if (!file.exists()) {
-                logger.w("Artifact file not found: $artifactPath")
+                AppLogger.w("Artifact file not found: $artifactPath")
                 return@withContext
             }
 
@@ -57,10 +56,10 @@ class ArtifactManager @Inject constructor(
             )
 
             projectRepository.saveArtifact(artifact)
-            logger.i("Registered artifact: ${artifact.fileName}")
+            AppLogger.i("Registered artifact: ${artifact.fileName}")
 
         } catch (e: Exception) {
-            logger.e("Failed to register artifact", e)
+            AppLogger.e("Failed to register artifact", e)
         }
     }
 
@@ -71,8 +70,8 @@ class ArtifactManager @Inject constructor(
      */
     suspend fun getDownloadUrl(artifactId: String): String? = withContext(Dispatchers.IO) {
         try {
-            val artifact = projectRepository.artifactDao.let { dao ->
-                runBlocking { dao.getArtifactsForBuild("").find { it.id == artifactId } } // TODO: Fix query
+            val artifact = runBlocking {
+                projectRepository.getArtifactsForBuild("").first().find { it.id == artifactId }
             } ?: return@withContext null
 
             // For now, return local file path
@@ -80,7 +79,7 @@ class ArtifactManager @Inject constructor(
             artifact.localPath
 
         } catch (e: Exception) {
-            logger.e("Failed to get download URL", e)
+            AppLogger.e("Failed to get download URL", e)
             null
         }
     }
@@ -92,8 +91,8 @@ class ArtifactManager @Inject constructor(
      */
     suspend fun downloadArtifact(artifactId: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val artifact = projectRepository.artifactDao.let { dao ->
-                runBlocking { dao.getArtifactsForBuild("").find { it.id == artifactId } } // TODO: Fix query
+            val artifact = runBlocking {
+                projectRepository.getArtifactsForBuild("").first().find { it.id == artifactId }
             } ?: return@withContext Result.failure(Exception("Artifact not found"))
 
             val cachedFile = artifactCache.getArtifact(artifact.localPath ?: "")
@@ -107,7 +106,7 @@ class ArtifactManager @Inject constructor(
             }
 
         } catch (e: Exception) {
-            logger.e("Failed to download artifact", e)
+            AppLogger.e("Failed to download artifact", e)
             Result.failure(e)
         }
     }
@@ -120,8 +119,8 @@ class ArtifactManager @Inject constructor(
         try {
             val cutoffTime = System.currentTimeMillis() - (maxAgeDays * 24 * 60 * 60 * 1000L)
 
-            val oldArtifacts = projectRepository.artifactDao.let { dao ->
-                runBlocking { dao.getArtifactsForProject("").filter { it.createdAt < cutoffTime } } // TODO: Fix query
+            val oldArtifacts = runBlocking {
+                projectRepository.getArtifactsForProject("").first().filter { it.createdAt < cutoffTime }
             }
 
             oldArtifacts.forEach { artifact ->
@@ -130,14 +129,14 @@ class ArtifactManager @Inject constructor(
                         artifactCache.deleteArtifact(path)
                     }
                     projectRepository.deleteArtifact(artifact.id)
-                    logger.i("Cleaned up old artifact: ${artifact.fileName}")
+                    AppLogger.i("Cleaned up old artifact: ${artifact.fileName}")
                 } catch (e: Exception) {
-                    logger.w("Failed to cleanup artifact ${artifact.id}", e)
+                    AppLogger.w("Failed to cleanup artifact ${artifact.id}", e)
                 }
             }
 
         } catch (e: Exception) {
-            logger.e("Failed to cleanup old artifacts", e)
+            AppLogger.e("Failed to cleanup old artifacts", e)
         }
     }
 
@@ -157,7 +156,7 @@ class ArtifactManager @Inject constructor(
                 "artifactTypes" to artifacts.groupBy { it.artifactType }.mapValues { it.value.size }
             )
         } catch (e: Exception) {
-            logger.e("Failed to get artifact stats", e)
+            AppLogger.e("Failed to get artifact stats", e)
             emptyMap()
         }
     }
@@ -169,8 +168,8 @@ class ArtifactManager @Inject constructor(
      */
     suspend fun validateArtifact(artifactId: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val artifact = projectRepository.artifactDao.let { dao ->
-                runBlocking { dao.getArtifactsForBuild("").find { it.id == artifactId } } // TODO: Fix query
+            val artifact = runBlocking {
+                projectRepository.getArtifactsForBuild("").first().find { it.id == artifactId }
             } ?: return@withContext false
 
             val file = artifactCache.getArtifact(artifact.localPath ?: "")
@@ -180,7 +179,7 @@ class ArtifactManager @Inject constructor(
             actualSha256 == artifact.sha256Hash
 
         } catch (e: Exception) {
-            logger.e("Failed to validate artifact", e)
+            AppLogger.e("Failed to validate artifact", e)
             false
         }
     }

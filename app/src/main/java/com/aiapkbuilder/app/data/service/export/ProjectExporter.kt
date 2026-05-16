@@ -23,8 +23,6 @@ class ProjectExporter @Inject constructor(
     private val projectRepository: ProjectRepository,
     @ApplicationContext private val context: Context
 ) {
-    private val logger = AppLogger.getLogger("ProjectExporter")
-
     suspend fun exportProject(config: ExportConfig): Result<File> = withContext(Dispatchers.IO) {
         try {
             val project = projectRepository.getProject(config.projectId).let { flow ->
@@ -74,10 +72,10 @@ class ProjectExporter @Inject constructor(
                 }
             }
 
-            logger.i("Project exported to: ${zipFile.absolutePath}")
+            AppLogger.i("Project exported to: ${zipFile.absolutePath}")
             Result.success(zipFile)
         } catch (e: Exception) {
-            logger.e("Failed to export project", e)
+            AppLogger.e("Failed to export project", e)
             Result.failure(e)
         }
     }

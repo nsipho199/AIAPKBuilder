@@ -14,8 +14,6 @@ import javax.inject.Singleton
 class BuildHistoryManager @Inject constructor(
     private val buildHistoryDao: BuildHistoryDao
 ) {
-    private val logger = AppLogger.getLogger("BuildHistoryManager")
-
     suspend fun recordBuild(
         projectId: String,
         buildJobId: String,
@@ -44,9 +42,9 @@ class BuildHistoryManager @Inject constructor(
                 notes = notes
             )
             buildHistoryDao.insertHistory(history)
-            logger.i("Build history recorded: ${history.historyId}")
+            AppLogger.i("Build history recorded: ${history.historyId}")
         } catch (e: Exception) {
-            logger.e("Failed to record build history", e)
+            AppLogger.e("Failed to record build history", e)
         }
     }
 
@@ -104,7 +102,7 @@ class BuildHistoryManager @Inject constructor(
                 "averageDurationMs" to avgDuration
             )
         } catch (e: Exception) {
-            logger.e("Failed to get build history stats", e)
+            AppLogger.e("Failed to get build history stats", e)
             emptyMap()
         }
     }

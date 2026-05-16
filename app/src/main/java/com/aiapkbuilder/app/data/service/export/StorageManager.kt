@@ -25,8 +25,6 @@ class StorageManager @Inject constructor(
     private val artifactCache: ArtifactCache,
     @ApplicationContext private val context: Context
 ) {
-    private val logger = AppLogger.getLogger("StorageManager")
-
     suspend fun getStorageStats(): Result<StorageStats> = withContext(Dispatchers.IO) {
         try {
             val artifactSize = artifactCache.getCacheSize()
@@ -54,7 +52,7 @@ class StorageManager @Inject constructor(
                 recommendedCleanup = recommendedCleanup
             ))
         } catch (e: Exception) {
-            logger.e("Failed to get storage stats", e)
+            AppLogger.e("Failed to get storage stats", e)
             Result.failure(e)
         }
     }
@@ -66,13 +64,13 @@ class StorageManager @Inject constructor(
             if (cacheDir.exists()) {
                 cacheDir.walkTopDown().filter { it.isFile && it.lastModified() < cutoffTime }.forEach { file ->
                     file.delete()
-                    logger.i("Deleted old export: ${file.name}")
+                    AppLogger.i("Deleted old export: ${file.name}")
                 }
             }
 
-            logger.i("Cleanup complete for artifacts older than $maxAgeDays days")
+            AppLogger.i("Cleanup complete for artifacts older than $maxAgeDays days")
         } catch (e: Exception) {
-            logger.e("Failed to cleanup old artifacts", e)
+            AppLogger.e("Failed to cleanup old artifacts", e)
         }
     }
 
@@ -88,10 +86,10 @@ class StorageManager @Inject constructor(
                 completedAt = System.currentTimeMillis()
             )
             backupRecordDao.insertBackup(backup)
-            logger.i("Backup created: ${backup.backupId}")
+            AppLogger.i("Backup created: ${backup.backupId}")
             Result.success(backup)
         } catch (e: Exception) {
-            logger.e("Failed to create backup", e)
+            AppLogger.e("Failed to create backup", e)
             Result.failure(e)
         }
     }
@@ -108,7 +106,7 @@ class StorageManager @Inject constructor(
         val exportDir = File(context.cacheDir, "exports")
         if (exportDir.exists()) {
             exportDir.deleteRecursively()
-            logger.i("Cleared all exports")
+            AppLogger.i("Cleared all exports")
         }
     }
 

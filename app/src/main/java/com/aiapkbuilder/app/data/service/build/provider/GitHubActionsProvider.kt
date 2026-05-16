@@ -26,15 +26,13 @@ class GitHubActionsProvider @Inject constructor(
 
     override val provider: BuildProvider = BuildProvider.GITHUB_ACTIONS
 
-    private val logger = AppLogger.getLogger("GitHubActionsProvider")
-
     override suspend fun isHealthy(): Boolean {
         return try {
             // Check if we can access GitHub API
             val response = apiService.getWorkflows("test", "test")
             response.isSuccessful
         } catch (e: Exception) {
-            logger.w("GitHub Actions health check failed", e)
+            AppLogger.w("GitHub Actions health check failed", e)
             false
         }
     }
@@ -97,7 +95,7 @@ class GitHubActionsProvider @Inject constructor(
             Result.success(buildJob)
 
         } catch (e: Exception) {
-            logger.e("Failed to start GitHub Actions build", e)
+            AppLogger.e("Failed to start GitHub Actions build", e)
             Result.failure(e)
         }
     }
@@ -138,7 +136,7 @@ class GitHubActionsProvider @Inject constructor(
             ))
 
         } catch (e: Exception) {
-            logger.e("Failed to get build status", e)
+            AppLogger.e("Failed to get build status", e)
             Result.failure(e)
         }
     }
@@ -164,7 +162,7 @@ class GitHubActionsProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            logger.e("Failed to stream logs", e)
+            AppLogger.e("Failed to stream logs", e)
             emit("Error streaming logs: ${e.message}")
         }
     }
@@ -183,7 +181,7 @@ class GitHubActionsProvider @Inject constructor(
             Result.success(cancelResult.isSuccessful)
 
         } catch (e: Exception) {
-            logger.e("Failed to cancel build", e)
+            AppLogger.e("Failed to cancel build", e)
             Result.failure(e)
         }
     }
@@ -231,7 +229,7 @@ class GitHubActionsProvider @Inject constructor(
             Result.success(tempFile.absolutePath)
 
         } catch (e: Exception) {
-            logger.e("Failed to download artifact", e)
+            AppLogger.e("Failed to download artifact", e)
             Result.failure(e)
         }
     }
@@ -280,7 +278,7 @@ class GitHubActionsProvider @Inject constructor(
             Result.success("${repoOwner}/${repoName}/releases/download/${release.tagName}/${projectId}_source.zip")
 
         } catch (e: Exception) {
-            logger.e("Failed to upload source code", e)
+            AppLogger.e("Failed to upload source code", e)
             Result.failure(e)
         }
     }

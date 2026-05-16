@@ -25,8 +25,6 @@ class ShareService @Inject constructor(
     private val shareLinkDao: ShareLinkDao,
     @ApplicationContext private val context: Context
 ) {
-    private val logger = AppLogger.getLogger("ShareService")
-
     suspend fun generateShareLink(config: ShareConfig): Result<ShareLink> = withContext(Dispatchers.IO) {
         try {
             val token = UUID.randomUUID().toString().replace("-", "").take(16)
@@ -40,10 +38,10 @@ class ShareService @Inject constructor(
                 createdAt = System.currentTimeMillis()
             )
             shareLinkDao.insertLink(link)
-            logger.i("Share link generated: ${link.linkId}")
+            AppLogger.i("Share link generated: ${link.linkId}")
             Result.success(link)
         } catch (e: Exception) {
-            logger.e("Failed to generate share link", e)
+            AppLogger.e("Failed to generate share link", e)
             Result.failure(e)
         }
     }
@@ -65,7 +63,7 @@ class ShareService @Inject constructor(
                 shareLinkDao.updateLink(link.copy(isActive = false))
             }
         } catch (e: Exception) {
-            logger.e("Failed to revoke link", e)
+            AppLogger.e("Failed to revoke link", e)
         }
     }
 
@@ -76,7 +74,7 @@ class ShareService @Inject constructor(
                 shareLinkDao.updateLink(link.copy(downloadCount = link.downloadCount + 1))
             }
         } catch (e: Exception) {
-            logger.e("Failed to record download", e)
+            AppLogger.e("Failed to record download", e)
         }
     }
 
@@ -87,7 +85,7 @@ class ShareService @Inject constructor(
                 shareLinkDao.updateLink(link.copy(viewCount = link.viewCount + 1))
             }
         } catch (e: Exception) {
-            logger.e("Failed to record view", e)
+            AppLogger.e("Failed to record view", e)
         }
     }
 
@@ -104,7 +102,7 @@ class ShareService @Inject constructor(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             })
         } catch (e: Exception) {
-            logger.e("Failed to share via intent", e)
+            AppLogger.e("Failed to share via intent", e)
         }
     }
 
@@ -130,7 +128,7 @@ class ShareService @Inject constructor(
             }
             Result.success(bitmap)
         } catch (e: Exception) {
-            logger.e("Failed to generate QR code", e)
+            AppLogger.e("Failed to generate QR code", e)
             Result.failure(e)
         }
     }

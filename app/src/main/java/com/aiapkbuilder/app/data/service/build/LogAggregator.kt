@@ -17,8 +17,6 @@ class LogAggregator @Inject constructor(
     private val projectRepository: ProjectRepository
 ) {
 
-    private val logger = AppLogger.getLogger("LogAggregator")
-
     // In-memory log storage for active builds
     private val activeLogs = ConcurrentHashMap<String, MutableList<String>>()
 
@@ -42,7 +40,7 @@ class LogAggregator @Inject constructor(
                         persistLogLine(jobId, line)
                     }
                 } catch (e: Exception) {
-                    logger.e("Error aggregating logs for job $jobId", e)
+                    AppLogger.e("Error aggregating logs for job $jobId", e)
                 } finally {
                     // Persist final log state
                     persistCompleteLog(jobId, logLines)
@@ -163,7 +161,7 @@ class LogAggregator @Inject constructor(
                 projectRepository.updateBuildJob(job.copy(logOutput = updatedLog))
             }
         } catch (e: Exception) {
-            logger.w("Failed to persist log line", e)
+            AppLogger.w("Failed to persist log line", e)
         }
     }
 
@@ -175,7 +173,7 @@ class LogAggregator @Inject constructor(
                 projectRepository.updateBuildJob(job.copy(logOutput = completeLog))
             }
         } catch (e: Exception) {
-            logger.w("Failed to persist complete log", e)
+            AppLogger.w("Failed to persist complete log", e)
         }
     }
 
@@ -184,7 +182,7 @@ class LogAggregator @Inject constructor(
             val job = runBlocking { projectRepository.getBuildJob(jobId) }
             job?.logOutput?.lines() ?: emptyList()
         } catch (e: Exception) {
-            logger.w("Failed to get persisted logs", e)
+            AppLogger.w("Failed to get persisted logs", e)
             emptyList()
         }
     }

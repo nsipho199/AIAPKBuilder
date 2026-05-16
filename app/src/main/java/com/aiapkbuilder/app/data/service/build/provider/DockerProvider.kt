@@ -23,8 +23,6 @@ class DockerProvider @Inject constructor(
 
     override val provider: BuildProvider = BuildProvider.DOCKER
 
-    private val logger = AppLogger.getLogger("DockerProvider")
-
     override suspend fun isHealthy(): Boolean {
         return dockerService.isDockerAvailable()
     }
@@ -61,7 +59,7 @@ class DockerProvider @Inject constructor(
             Result.success(buildJob)
 
         } catch (e: Exception) {
-            logger.e("Failed to start Docker build", e)
+            AppLogger.e("Failed to start Docker build", e)
             Result.failure(e)
         }
     }
@@ -91,7 +89,7 @@ class DockerProvider @Inject constructor(
             ))
 
         } catch (e: Exception) {
-            logger.e("Failed to get build status", e)
+            AppLogger.e("Failed to get build status", e)
             Result.failure(e)
         }
     }
@@ -102,7 +100,7 @@ class DockerProvider @Inject constructor(
                 emit(logLine)
             }
         } catch (e: Exception) {
-            logger.e("Failed to stream logs", e)
+            AppLogger.e("Failed to stream logs", e)
             emit("Error streaming logs: ${e.message}")
         }
     }
@@ -112,7 +110,7 @@ class DockerProvider @Inject constructor(
             dockerService.stopContainer(jobId)
             Result.success(true)
         } catch (e: Exception) {
-            logger.e("Failed to cancel build", e)
+            AppLogger.e("Failed to cancel build", e)
             Result.failure(e)
         }
     }
@@ -122,7 +120,7 @@ class DockerProvider @Inject constructor(
             val artifactPath = dockerService.extractArtifact(jobId)
             Result.success(artifactPath)
         } catch (e: Exception) {
-            logger.e("Failed to download artifact", e)
+            AppLogger.e("Failed to download artifact", e)
             Result.failure(e)
         }
     }

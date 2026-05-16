@@ -25,7 +25,6 @@ import javax.inject.Singleton
 class DownloadManager @Inject constructor(
     private val downloadSessionDao: DownloadSessionDao
 ) {
-    private val logger = AppLogger.getLogger("DownloadManager")
     private val _activeDownloads = MutableStateFlow<Map<String, DownloadProgress>>(emptyMap())
     val activeDownloads: Flow<Map<String, DownloadProgress>> = _activeDownloads.asStateFlow()
 
@@ -52,7 +51,7 @@ class DownloadManager @Inject constructor(
             }
             Result.success(session)
         } catch (e: Exception) {
-            logger.e("Failed to start download", e)
+            AppLogger.e("Failed to start download", e)
             Result.failure(e)
         }
     }
@@ -187,7 +186,7 @@ class DownloadManager @Inject constructor(
                 ))
             }
         } catch (e: Exception) {
-            logger.e("Download failed", e)
+            AppLogger.e("Download failed", e)
             downloadSessionDao.updateSession(session.copy(
                 status = DownloadStatus.FAILED,
                 errorMessage = e.message,

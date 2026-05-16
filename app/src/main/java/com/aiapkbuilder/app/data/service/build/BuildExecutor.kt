@@ -22,8 +22,6 @@ class BuildExecutor @Inject constructor(
     private val artifactManager: ArtifactManager
 ) {
 
-    private val logger = AppLogger.getLogger("BuildExecutor")
-
     /**
      * Executes a build for a project using the best available provider.
      * @param projectId Project to build
@@ -69,7 +67,7 @@ class BuildExecutor @Inject constructor(
 
             if (buildResult.isFailure) {
                 val error = buildResult.exceptionOrNull() ?: Exception("Unknown build error")
-                logger.e("Build failed to start", error)
+                AppLogger.e("Build failed to start", error)
 
                 // Update job with failure
                 val failedJob = buildJob.copy(
@@ -90,7 +88,7 @@ class BuildExecutor @Inject constructor(
             return@withContext monitorBuildProgress(startedJob, provider, onProgress)
 
         } catch (e: Exception) {
-            logger.e("Build execution failed", e)
+            AppLogger.e("Build execution failed", e)
             onProgress(0, "Build failed: ${e.message}")
             return@withContext Result.failure(e)
         }
@@ -124,7 +122,7 @@ class BuildExecutor @Inject constructor(
                 val statusResult = provider.getBuildStatus(jobId)
                 if (statusResult.isFailure) {
                     consecutiveErrors++
-                    logger.w("Failed to get build status (attempt $consecutiveErrors)", statusResult.exceptionOrNull())
+                    AppLogger.w("Failed to get build status (attempt $consecutiveErrors)", statusResult.exceptionOrNull())
                     continue
                 }
 
@@ -157,7 +155,7 @@ class BuildExecutor @Inject constructor(
                             artifactManager.registerArtifact(updatedJob, artifactPath)
                             onProgress(100, "Build completed successfully!")
                         } else {
-                            logger.w("Failed to download artifact", downloadResult.exceptionOrNull())
+                            AppLogger.w("Failed to download artifact", downloadResult.exceptionOrNull())
                         }
                     }
 
@@ -179,7 +177,7 @@ class BuildExecutor @Inject constructor(
             return Result.failure(Exception("Build monitoring timed out"))
 
         } catch (e: Exception) {
-            logger.e("Error monitoring build progress", e)
+            AppLogger.e("Error monitoring build progress", e)
             logJob.cancel()
             return Result.failure(e)
         }
@@ -206,7 +204,7 @@ class BuildExecutor @Inject constructor(
 
             cancelResult
         } catch (e: Exception) {
-            logger.e("Failed to cancel build", e)
+            AppLogger.e("Failed to cancel build", e)
             Result.failure(e)
         }
     }

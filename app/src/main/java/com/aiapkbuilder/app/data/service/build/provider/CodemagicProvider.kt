@@ -25,14 +25,12 @@ class CodemagicProvider @Inject constructor(
 
     override val provider: BuildProvider = BuildProvider.CODEMAGIC
 
-    private val logger = AppLogger.getLogger("CodemagicProvider")
-
     override suspend fun isHealthy(): Boolean {
         return try {
             // Codemagic doesn't have a health check endpoint, assume healthy
             true
         } catch (e: Exception) {
-            logger.w("Codemagic health check failed", e)
+            AppLogger.w("Codemagic health check failed", e)
             false
         }
     }
@@ -90,7 +88,7 @@ class CodemagicProvider @Inject constructor(
             Result.success(buildJob)
 
         } catch (e: Exception) {
-            logger.e("Failed to start Codemagic build", e)
+            AppLogger.e("Failed to start Codemagic build", e)
             Result.failure(e)
         }
     }
@@ -125,7 +123,7 @@ class CodemagicProvider @Inject constructor(
             ))
 
         } catch (e: Exception) {
-            logger.e("Failed to get build status", e)
+            AppLogger.e("Failed to get build status", e)
             Result.failure(e)
         }
     }
@@ -146,7 +144,7 @@ class CodemagicProvider @Inject constructor(
             kotlinx.coroutines.delay(2000)
             emit("Build completed!")
         } catch (e: Exception) {
-            logger.e("Failed to stream logs", e)
+            AppLogger.e("Failed to stream logs", e)
             emit("Error streaming logs: ${e.message}")
         }
     }
@@ -163,7 +161,7 @@ class CodemagicProvider @Inject constructor(
             Result.success(response.isSuccessful)
 
         } catch (e: Exception) {
-            logger.e("Failed to cancel build", e)
+            AppLogger.e("Failed to cancel build", e)
             Result.failure(e)
         }
     }
@@ -212,7 +210,7 @@ class CodemagicProvider @Inject constructor(
             Result.success(tempFile.absolutePath)
 
         } catch (e: Exception) {
-            logger.e("Failed to download artifact", e)
+            AppLogger.e("Failed to download artifact", e)
             Result.failure(e)
         }
     }

@@ -16,8 +16,6 @@ import javax.inject.Singleton
 @Singleton
 class ArtifactCache @Inject constructor() {
 
-    private val logger = AppLogger.getLogger("ArtifactCache")
-
     private val cacheDir: File by lazy {
         val dir = File(System.getProperty("user.home"), ".aiapkbuilder/cache/artifacts")
         dir.mkdirs()
@@ -54,7 +52,7 @@ class ArtifactCache @Inject constructor() {
             cachedFile.absolutePath
 
         } catch (e: Exception) {
-            logger.e("Failed to store artifact in cache", e)
+            AppLogger.e("Failed to store artifact in cache", e)
             throw e
         }
     }
@@ -86,10 +84,10 @@ class ArtifactCache @Inject constructor() {
             val file = File(cachedPath)
             if (file.exists()) {
                 file.delete()
-                logger.i("Deleted cached artifact: $cachedPath")
+                AppLogger.i("Deleted cached artifact: $cachedPath")
             }
         } catch (e: Exception) {
-            logger.w("Failed to delete cached artifact", e)
+            AppLogger.w("Failed to delete cached artifact", e)
         }
     }
 
@@ -129,9 +127,9 @@ class ArtifactCache @Inject constructor() {
         try {
             cacheDir.deleteRecursively()
             cacheDir.mkdirs()
-            logger.i("Cleared artifact cache")
+            AppLogger.i("Cleared artifact cache")
         } catch (e: Exception) {
-            logger.e("Failed to clear cache", e)
+            AppLogger.e("Failed to clear cache", e)
         }
     }
 
@@ -148,12 +146,12 @@ class ArtifactCache @Inject constructor() {
                     val filesToDelete = files.take(files.size - maxFiles)
                     filesToDelete.forEach { file ->
                         file.delete()
-                        logger.i("Cleaned up old cached file: ${file.name}")
+                        AppLogger.i("Cleaned up old cached file: ${file.name}")
                     }
                 }
             }
         } catch (e: Exception) {
-            logger.w("Failed to cleanup old files", e)
+            AppLogger.w("Failed to cleanup old files", e)
         }
     }
 
@@ -164,16 +162,16 @@ class ArtifactCache @Inject constructor() {
         try {
             cleanupOldFiles()
             cleanupIfNeeded()
-            logger.i("Optimized artifact cache")
+            AppLogger.i("Optimized artifact cache")
         } catch (e: Exception) {
-            logger.e("Failed to optimize cache", e)
+            AppLogger.e("Failed to optimize cache", e)
         }
     }
 
     private suspend fun cleanupIfNeeded() = withContext(Dispatchers.IO) {
         val currentSize = getCacheSize()
         if (currentSize > maxCacheSizeBytes) {
-            logger.i("Cache size exceeded limit ($currentSize > $maxCacheSizeBytes), cleaning up...")
+            AppLogger.i("Cache size exceeded limit ($currentSize > $maxCacheSizeBytes), cleaning up...")
 
             // Delete oldest files until under limit
             val allFiles = cacheDir.walkTopDown()
@@ -187,7 +185,7 @@ class ArtifactCache @Inject constructor() {
 
                 file.delete()
                 deletedSize += file.length()
-                logger.i("Deleted old cached file: ${file.name}")
+                AppLogger.i("Deleted old cached file: ${file.name}")
             }
         }
     }

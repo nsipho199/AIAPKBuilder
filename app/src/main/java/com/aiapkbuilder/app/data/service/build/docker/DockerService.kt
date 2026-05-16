@@ -17,8 +17,6 @@ import javax.inject.Singleton
 @Singleton
 class DockerService @Inject constructor() {
 
-    private val logger = AppLogger.getLogger("DockerService")
-
     private val dockerImage = "aiapkbuilder/android-build:latest"
     private val workspaceDir = "/workspace"
     private val outputDir = "/output"
@@ -35,7 +33,7 @@ class DockerService @Inject constructor() {
             val exitCode = process.waitFor()
             exitCode == 0
         } catch (e: Exception) {
-            logger.w("Docker not available", e)
+            AppLogger.w("Docker not available", e)
             false
         }
     }
@@ -74,7 +72,7 @@ class DockerService @Inject constructor() {
         val inspectCommand = listOf("docker", "inspect", "-f", "{{.Id}}", containerName)
         val containerId = executeCommand(inspectCommand).trim()
 
-        logger.i("Created build container: $containerId")
+        AppLogger.i("Created build container: $containerId")
         containerId
     }
 
@@ -84,7 +82,7 @@ class DockerService @Inject constructor() {
     suspend fun startBuild(containerId: String) = withContext(Dispatchers.IO) {
         val startCommand = listOf("docker", "start", "-i", containerId)
         executeCommand(startCommand)
-        logger.i("Started build in container: $containerId")
+        AppLogger.i("Started build in container: $containerId")
     }
 
     /**
@@ -130,7 +128,7 @@ class DockerService @Inject constructor() {
             }
 
         } catch (e: Exception) {
-            logger.e("Failed to stream container logs", e)
+            AppLogger.e("Failed to stream container logs", e)
             emit("Error streaming logs: ${e.message}")
         }
     }
@@ -141,7 +139,7 @@ class DockerService @Inject constructor() {
     suspend fun stopContainer(containerId: String) = withContext(Dispatchers.IO) {
         val command = listOf("docker", "stop", containerId)
         executeCommand(command)
-        logger.i("Stopped container: $containerId")
+        AppLogger.i("Stopped container: $containerId")
     }
 
     /**
@@ -171,9 +169,9 @@ class DockerService @Inject constructor() {
         try {
             val rmCommand = listOf("docker", "rm", "-f", containerId)
             executeCommand(rmCommand)
-            logger.i("Cleaned up container: $containerId")
+            AppLogger.i("Cleaned up container: $containerId")
         } catch (e: Exception) {
-            logger.w("Failed to cleanup container", e)
+            AppLogger.w("Failed to cleanup container", e)
         }
     }
 
@@ -195,7 +193,7 @@ class DockerService @Inject constructor() {
 
             output
         } catch (e: Exception) {
-            logger.e("Command execution failed", e)
+            AppLogger.e("Command execution failed", e)
             throw e
         }
     }
