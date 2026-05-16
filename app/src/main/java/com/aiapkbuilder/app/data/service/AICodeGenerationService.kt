@@ -2,6 +2,7 @@ package com.aiapkbuilder.app.data.service
 
 import com.aiapkbuilder.app.data.model.*
 import com.aiapkbuilder.app.util.CodeGenerator
+import com.aiapkbuilder.app.util.ExtractedRequirements
 import com.aiapkbuilder.app.util.PromptAnalyzer
 import com.aiapkbuilder.app.util.safeExecute
 import kotlinx.coroutines.flow.Flow

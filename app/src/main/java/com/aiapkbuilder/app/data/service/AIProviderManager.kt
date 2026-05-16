@@ -1,6 +1,9 @@
 package com.aiapkbuilder.app.data.service
 
+import com.aiapkbuilder.app.data.api.ChatMessage
 import com.aiapkbuilder.app.data.api.OpenAIApiService
+import com.aiapkbuilder.app.data.api.OpenAIRequest
+import com.aiapkbuilder.app.data.api.OpenAIResponse
 import com.aiapkbuilder.app.data.model.AIProvider
 import com.aiapkbuilder.app.data.model.AISettings
 import com.aiapkbuilder.app.data.repository.SettingsRepository

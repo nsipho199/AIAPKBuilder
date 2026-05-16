@@ -34,7 +34,7 @@ class BuildExecutor @Inject constructor(
     suspend fun executeBuild(
         projectId: String,
         preferredProvider: BuildProvider? = null,
-        onProgress: (Int, String) -> Unit = { _, _ -> }
+        onProgress: suspend (Int, String) -> Unit = { _, _ -> }
     ): Result<BuildJob> = withContext(Dispatchers.IO) {
 
         try {

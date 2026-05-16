@@ -48,6 +48,10 @@ enum class ComponentType {
     BUTTON, TEXT, LIST, CARD, BAR, FORM, IMAGE, CUSTOM
 }
 
+enum class ScreenType {
+    LIST, DETAIL, FORM, DASHBOARD, SETTINGS, SPLASH, AUTH, CUSTOM
+}
+
 /**
  * Event handler for a component.
  */
