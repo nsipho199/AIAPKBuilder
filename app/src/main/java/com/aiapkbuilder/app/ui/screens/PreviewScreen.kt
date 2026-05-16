@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aiapkbuilder.app.data.model.GeneratedProjectPlan
+import com.aiapkbuilder.app.data.model.ScreenSpec
 import com.aiapkbuilder.app.viewmodel.GenerateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,7 +187,7 @@ private fun PreviewSection(
 }
 
 @Composable
-private fun ScreenPreviewList(screens: List<com.aiapkbuilder.app.data.model.Screen>) {
+private fun ScreenPreviewList(screens: List<ScreenSpec>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         screens.forEach { screen ->
             Card(modifier = Modifier.fillMaxWidth()) {

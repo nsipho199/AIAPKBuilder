@@ -161,6 +161,18 @@ enum class AIProvider(val displayName: String) {
     CUSTOM("Custom API")
 }
 
+enum class Complexity {
+    SIMPLE, MODERATE, COMPLEX
+}
+
+sealed class GenerationEvent {
+    data class Progress(val percent: Int, val message: String) : GenerationEvent()
+    data class ScreenGenerated(val screenName: String) : GenerationEvent()
+    data class CodeSegment(val code: String) : GenerationEvent()
+    data class Error(val message: String) : GenerationEvent()
+    object Complete : GenerationEvent()
+}
+
 // ─── Template & Code Generation ────────────────────────────────
 @Entity(tableName = "templates")
 @TypeConverters(StringListConverter::class)

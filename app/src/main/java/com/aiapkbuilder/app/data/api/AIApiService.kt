@@ -60,11 +60,11 @@ data class GitHubRunStatus(
     val html_url: String
 )
 
-data class GitHubArtifactList(
-    val artifacts: List<GitHubArtifact>
+data class SimpleGitHubArtifactList(
+    val artifacts: List<SimpleGitHubArtifact>
 )
 
-data class GitHubArtifact(
+data class SimpleGitHubArtifact(
     val id: Long,
     val name: String,
     val archive_download_url: String,
@@ -95,44 +95,5 @@ interface GitHubApiService {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path("run_id") runId: Long
-    ): Response<GitHubArtifactList>
-}
-
-// ─── Codemagic API ────────────────────────────────────────────
-data class CodemagicBuildRequest(
-    val appId: String,
-    val workflowId: String,
-    val branch: String = "main",
-    val environment: Map<String, String> = emptyMap()
-)
-
-data class CodemagicBuildResponse(
-    val buildId: String,
-    val status: String
-)
-
-data class CodemagicBuildStatus(
-    val buildId: String,
-    val status: String,
-    val artefacts: List<CodemagicArtefact>?
-)
-
-data class CodemagicArtefact(
-    val name: String,
-    val url: String,
-    val type: String
-)
-
-interface CodemagicApiService {
-    @POST("builds")
-    suspend fun triggerBuild(
-        @Header("x-auth-token") apiKey: String,
-        @Body request: CodemagicBuildRequest
-    ): Response<CodemagicBuildResponse>
-
-    @GET("builds/{buildId}")
-    suspend fun getBuildStatus(
-        @Header("x-auth-token") apiKey: String,
-        @Path("buildId") buildId: String
-    ): Response<CodemagicBuildStatus>
+    ): Response<SimpleGitHubArtifactList>
 }
